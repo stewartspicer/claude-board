@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- Unraid Docker template for a locally built claude-board image (see deploy/unraid/deploy.sh).
+     Installed to /boot/config/plugins/dockerMan/templates-user/ on first deploy; edit it there (or in the
+     Unraid UI) afterwards: set BOARD_PUBLIC_URL to the address clients use, and adjust the port binding. -->
+<Container version="2">
+  <Name>claude-board</Name>
+  <Repository>claude-board:latest</Repository>
+  <Registry/>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/stewartspicer/claude-board</Support>
+  <Project>https://github.com/stewartspicer/claude-board</Project>
+  <Overview>Claude Board: a shared task board (MCP server + Claude Code hooks) so collaborators' Claudes can claim work, post progress and leave each other notes. Manage users: docker exec claude-board python -m board.admin --help</Overview>
+  <Category>Tools:</Category>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon/>
+  <ExtraParams>-p 8792:8000 --restart unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <Requires/>
+  <Config Name="Data" Target="/data" Default="/mnt/user/appdata/claude-board/data" Mode="rw" Description="SQLite database" Type="Path" Display="advanced" Required="true" Mask="false">/mnt/user/appdata/claude-board/data</Config>
+  <Config Name="BOARD_PUBLIC_URL" Target="BOARD_PUBLIC_URL" Default="http://localhost:8792" Mode="{3}" Description="Address clients use to reach the board (shown in /setup; its host is allowed automatically)" Type="Variable" Display="always" Required="true" Mask="false">http://localhost:8792</Config>
+  <Config Name="BOARD_ALLOWED_HOSTS" Target="BOARD_ALLOWED_HOSTS" Default="" Mode="{3}" Description="Extra Host headers to accept, comma-separated host:port patterns (host:* = any port), e.g. 192.168.1.10:*" Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="TZ" Target="TZ" Default="UTC" Mode="{3}" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">UTC</Config>
+</Container>

@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+      - run: uv sync --locked
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+      - run: docker build -t claude-board:ci .
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Start with docker compose (README quick start)
+        run: |
+          printf 'BOARD_PUBLIC_URL=http://localhost:8792\n' > .env
+          docker compose up -d --build
+          for i in $(seq 1 30); do curl -sf localhost:8792/healthz && exit 0; sleep 1; done
+          echo 'board never became healthy'; docker compose logs; exit 1
+      - name: Create a user and call a hook with their token
+        run: |
+          TOKEN=$(docker compose exec -T board python -m board.admin add-user alice)
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8792/hooks/prompt -d '{}')" = 401
+          curl -sf -X POST localhost:8792/hooks/session-start -H "Authorization: Bearer $TOKEN" \
+            -H 'Content-Type: application/json' -d '{"session_id":"ci","cwd":"/tmp"}' | grep -q "You post as alice"
+          curl -sf localhost:8792/setup | grep -q "http://localhost:8792/mcp"
+      - if: failure()
+        run: docker compose logs

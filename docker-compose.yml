@@ -1,0 +1,19 @@
+# Run Claude Board on any Docker host:
+#   cp .env.example .env    # set BOARD_PUBLIC_URL
+#   docker compose up -d --build
+#   docker compose exec board python -m board.admin add-user alice
+services:
+  board:
+    build: .
+    container_name: claude-board
+    restart: unless-stopped
+    ports:
+      - "${BOARD_PORT:-8792}:8000"
+    environment:
+      BOARD_PUBLIC_URL: ${BOARD_PUBLIC_URL:-http://localhost:8792}
+      BOARD_ALLOWED_HOSTS: ${BOARD_ALLOWED_HOSTS:-}
+    volumes:
+      - board-data:/data
+
+volumes:
+  board-data:
